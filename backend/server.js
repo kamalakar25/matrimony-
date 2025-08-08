@@ -19,7 +19,28 @@ const app = express();
 // Middleware
 // app.use(cors({ origin: 'http://localhost:8080', methods: ['GET', 'POST', 'PUT', 'DELETE'], credentials: true }));
 
-app.use(cors());
+// Allow both local and deployed frontends
+const allowedOrigins = [
+  'http://localhost:8080',
+  'https://matrimony-hazel-omega.vercel.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true // only if you're using cookies or auth headers
+}));
+
+app.options('*', cors()); // handle preflight
+
 
 app.use('/api/payment', Razorpay);
 app.use(express.json());
